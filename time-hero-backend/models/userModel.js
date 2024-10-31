@@ -49,6 +49,16 @@ const User = {
                 resolve(this.changes);
             });
         });
+    },
+
+    getUserInfo: (userId) => {
+        return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM User WHERE id = ?`;
+            db.get(query, [userId], (err, row) => {
+                if (err) return reject(err);
+                resolve(row);
+            });
+        });
     }
 };
 
