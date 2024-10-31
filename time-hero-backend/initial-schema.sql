@@ -1,38 +1,32 @@
--- Enum table for CompletionType
-CREATE TABLE CompletionTypeEnum (
-    value TEXT PRIMARY KEY
-);
-
--- CompletionTypeEnum
-INSERT INTO CompletionTypeEnum (value) VALUES ('timer');
-INSERT INTO CompletionTypeEnum (value) VALUES ('counter');
-INSERT INTO CompletionTypeEnum (value) VALUES ('self verified');
-
--- Leaderboard schema
-CREATE TABLE Leaderboard (
-    id TEXT PRIMARY KEY, -- GUID 
-    joinCode TEXT NOT NULL UNIQUE -- 6 digit alphanumeric code
-);
-
--- User schema
+-- Create User table
 CREATE TABLE User (
-    id TEXT PRIMARY KEY, -- GUID
-    leaderboardID TEXT, 
-    accumulatedTime INTEGER NOT NULL DEFAULT 0, 
-    completedTaskIDs TEXT, -- Store GUIDs of completed tasks as a JSON array of strings
+    id TEXT PRIMARY KEY,                  -- GUID for the user
+    completedTaskIDs TEXT,                -- JSON array of completed task GUIDs
+    accumulatedTime INTEGER NOT NULL,     -- Accumulated screen time
+    depositedTime INTEGER NOT NULL,       -- Deposited time
+    leaderboardID TEXT,                   -- References Leaderboard(id) or NULL
+    activeTaskIDs TEXT,                   -- JSON array of active task GUIDs
     FOREIGN KEY (leaderboardID) REFERENCES Leaderboard(id)
 );
 
--- Task schema
+-- Create Task table
 CREATE TABLE Task (
-    id TEXT PRIMARY KEY, -- GUID 
-    time INTEGER, -- Time in seconds, nullable
-    metric INTEGER, -- Metric value, nullable
-    completionType TEXT, -- Link to the enum type
-    label TEXT NOT NULL, -- Task label
-    FOREIGN KEY (completionType) REFERENCES CompletionTypeEnum(value)
+    id TEXT PRIMARY KEY,                  -- GUID for the task
+    time INTEGER,                         -- Time in seconds (nullable)
+    metric INTEGER,                       -- Task metric value (nullable)
+    completionType TEXT,                  -- Enum type handled server-side
+    label TEXT NOT NULL,                  -- Task label
+    steps TEXT,                           -- JSON array of strings for task steps
+    taskType TEXT NOT NULL                -- Type of task as a string
 );
 
+-- Create Leaderboard table
+CREATE TABLE Leaderboard (
+    id TEXT PRIMARY KEY,                  -- GUID for the leaderboard
+    joinCode TEXT NOT NULL UNIQUE,        -- Unique 6-digit alphanumeric code
+    users TEXT                            -- JSON array of user GUIDs
+);
+
+-- Optional: Sample indices for faster queries
 CREATE INDEX idx_user_leaderboardID ON User (leaderboardID);
-CREATE INDEX idx_user_accumulatedTime ON User (accumulatedTime);
 CREATE INDEX idx_task_completionType ON Task (completionType);
